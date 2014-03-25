@@ -20,8 +20,13 @@
   }
 }
 
-st     = i:ID ASSIGN e:exp            
+st     = i:ID ASSIGN e:exp     ## Sentencia de asignación             
             { return {type: '=', left: i, right: e}; }
+       / IF e:exp THEN s:st 
+       { return {type: 'IF', condition:e, statement:s }; }
+       / IF exp THEN st:st ELSE sf:st
+       { return {type: 'IFELSE', condition:e, true_st:st, false_st:sf }; }
+
 exp    = t:term   r:(ADD term)*   { return tree(t,r); }
 term   = f:factor r:(MUL factor)* { return tree(f,r); }
 
@@ -36,6 +41,9 @@ ADD      = _ op:[+-] _ { return op; }
 MUL      = _ op:[*/] _ { return op; }
 LEFTPAR  = _"("_
 RIGHTPAR = _")"_
+IF = _"if"_   ## Si lo pones despues de id da error porque lo caza ID
+THEN"then
+ELSE"else
 ID       = _ id:$[a-zA-Z_][a-zA-Z_0-9]* _ 
             { 
               return { type: 'ID', value: id }; 
